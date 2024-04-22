@@ -47,8 +47,8 @@ class GithubServiceTest extends TestCase
     public function dinoNameProvider()
     {
         return [
-            'Sick Dino' => [HealthStatus::SICK, 'Daisy'],
-            'Healthy Dino' => [HealthStatus::HEALTHY, 'Maverick'],
+            'Sick Dino' => [HealthStatus::SICK->value, 'Daisy'],
+            'Healthy Dino' => [HealthStatus::HEALTHY->value, 'Maverick'],
         ];
     }
 
