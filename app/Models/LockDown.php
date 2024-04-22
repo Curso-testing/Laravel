@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\LockDownStatus; // Asegúrate de adaptar el Enum a las convenciones de Laravel/PHP
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class LockDown extends Model
 {
+    use HasFactory;
     protected $table = 'lock_downs'; // Asegúrate de que el nombre de la tabla coincida con tu esquema de base de datos
 
     protected $fillable = [
@@ -42,5 +44,11 @@ class LockDown extends Model
             $this->endedAt = now();
             $this->save();
         }
+    }
+
+    public static function isInLockDown(): bool
+    {
+        $mostRecentLockDown = self::orderBy('createdAt', 'desc')->first();
+        return $mostRecentLockDown && $mostRecentLockDown->status === LockDownStatus::ACTIVE;
     }
 }

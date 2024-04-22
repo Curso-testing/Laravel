@@ -1,71 +1,26 @@
 <?php
 
-namespace App\Factory;
+namespace Database\Factories;
 
-use App\Entity\LockDown;
-use App\Enum\LockDownStatus;
-use App\Repository\LockDownRepository;
-use Zenstruck\Foundry\ModelFactory;
-use Zenstruck\Foundry\Proxy;
-use Zenstruck\Foundry\RepositoryProxy;
+use App\Models\LockDown;
+use App\Enums\LockDownStatus;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends ModelFactory<LockDown>
- *
- * @method        LockDown|Proxy                     create(array|callable $attributes = [])
- * @method static LockDown|Proxy                     createOne(array $attributes = [])
- * @method static LockDown|Proxy                     find(object|array|mixed $criteria)
- * @method static LockDown|Proxy                     findOrCreate(array $attributes)
- * @method static LockDown|Proxy                     first(string $sortedField = 'id')
- * @method static LockDown|Proxy                     last(string $sortedField = 'id')
- * @method static LockDown|Proxy                     random(array $attributes = [])
- * @method static LockDown|Proxy                     randomOrCreate(array $attributes = [])
- * @method static LockDownRepository|RepositoryProxy repository()
- * @method static LockDown[]|Proxy[]                 all()
- * @method static LockDown[]|Proxy[]                 createMany(int $number, array|callable $attributes = [])
- * @method static LockDown[]|Proxy[]                 createSequence(iterable|callable $sequence)
- * @method static LockDown[]|Proxy[]                 findBy(array $attributes)
- * @method static LockDown[]|Proxy[]                 randomRange(int $min, int $max, array $attributes = [])
- * @method static LockDown[]|Proxy[]                 randomSet(int $number, array $attributes = [])
- */
-final class LockDownFactory extends ModelFactory
+class LockDownFactory extends Factory
 {
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    protected $model = LockDown::class;
 
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
-     */
-    protected function getDefaults(): array
+    public function definition()
     {
+        // Opcionalmente genera fechas con cierta lógica (e.g., endedAt después de createdAt si está finalizado)
+        $createdAt = $this->faker->dateTimeBetween('-1 month', 'now');
+        $status = $this->faker->randomElement(LockDownStatus::getValues());
+
         return [
-            'createdAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
-            'reason' => self::faker()->text(),
-            'status' => self::faker()->randomElement(LockDownStatus::cases()),
+            'createdAt' => $createdAt,
+            'endedAt' => $status === LockDownStatus::ENDED ? $this->faker->dateTimeBetween($createdAt, 'now') : null,
+            'status' => $status,
+            'reason' => $this->faker->sentence
         ];
-    }
-
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
-     */
-    protected function initialize(): self
-    {
-        return $this
-            // ->afterInstantiate(function(LockDown $lockDown): void {})
-        ;
-    }
-
-    protected static function getClass(): string
-    {
-        return LockDown::class;
     }
 }

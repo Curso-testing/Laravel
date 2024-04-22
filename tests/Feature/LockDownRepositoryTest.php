@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\LockDownStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\LockDown;
 use Carbon\Carbon;
+use Illuminate\Cache\Lock;
 
 class LockDownRepositoryTest extends TestCase
 {
@@ -20,11 +22,11 @@ class LockDownRepositoryTest extends TestCase
     {
         LockDown::create([
             'created_at' => Carbon::now()->subDay(),
-            'status' => 'ACTIVE',
+            'status' => LockDownStatus::ACTIVE,
         ]);
         LockDown::factory()->count(5)->create([
             'created_at' => Carbon::now()->subDays(2),
-            'status' => 'ENDED',
+            'status' => LockDownStatus::ENDED,
         ]);
 
         $this->assertTrue(LockDown::isInLockDown());
