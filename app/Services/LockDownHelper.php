@@ -42,7 +42,7 @@ class LockDownHelper
         $lockDown->save();
 
         // Aquí se despacha un job o se envía una notificación directamente
-        ProcessLockDownLiftedNotification::dispatch();
+        //ProcessLockDownLiftedNotification::dispatch();
 
         // O enviar un correo directamente si prefieres
         // Mail::to($someAddress)->send(new LockDownLiftedMail());

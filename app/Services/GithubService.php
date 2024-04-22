@@ -62,6 +62,6 @@ class GithubService
             break; // Suponiendo que solo necesitas evaluar un estado de salud por issue
         }
 
-        return $health ?? HealthStatus::HEALTHY;
+        return $health ?? HealthStatus::HEALTHY->value;
     }
 }
