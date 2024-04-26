@@ -1,10 +1,6 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Enums\LockDownStatus;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\LockDown;
 use App\Services\GithubService;
 use App\Services\LockDownHelper;
@@ -15,56 +11,50 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Testing\Fakes\NotificationFake;
 use PHPUnit\Framework\TestStatus\Notice;
 
-class LockDownHelperTest extends TestCase
-{
-    use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // Simula tus notificaciones y eventos si es necesario
-        Notification::fake();
-        Event::fake();
-    }
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-    public function testEndCurrentLockdown()
-    {
-        $lockDown = LockDown::create([
-            'status' => 'ACTIVE',
-        ]);
+beforeEach(function () {
+    // Simula tus notificaciones y eventos si es necesario
+    Notification::fake();
+    Event::fake();
+});
 
-        $githubService = mock(GithubService::class);
-        $githubService->shouldReceive('clearLockDownAlerts')->once();
+test('end current lockdown', function () {
+    $lockDown = LockDown::create([
+        'status' => 'ACTIVE',
+    ]);
 
-        // Reemplaza el servicio real con el mock
-        $this->app->instance(GithubService::class, $githubService);
+    $githubService = mock(GithubService::class);
+    $githubService->shouldReceive('clearLockDownAlerts')->once();
 
-        app(LockDownHelper::class)->endCurrentLockDown();
+    // Reemplaza el servicio real con el mock
+    $this->app->instance(GithubService::class, $githubService);
 
-        $this->assertEquals(LockDownStatus::ENDED, $lockDown->fresh()->status);
-    }
+    app(LockDownHelper::class)->endCurrentLockDown();
 
-    public function testDinoEscapedPersistsLockDown()
-    {
-        // Simular el envío de email
-        Mail::fake();
+    expect($lockDown->fresh()->status)->toEqual(LockDownStatus::ENDED);
+});
 
-        // Ejecutar la acción que resulta en el envío del correo
-        app(LockDownHelper::class)->dinoEscaped();
+test('dino escaped persists lock down', function () {
+    // Simular el envío de email
+    Mail::fake();
 
-        // Afirmar que la base de datos tiene el registro esperado
-        $this->assertDatabaseCount('lock_downs', 1);
-        $this->assertDatabaseHas('lock_downs', [
-            'status' => LockDownStatus::ACTIVE,
-            'reason' => 'Dino escaped... NOT good...',
-        ]);
+    // Ejecutar la acción que resulta en el envío del correo
+    app(LockDownHelper::class)->dinoEscaped();
 
-        Mail::fake();
+    // Afirmar que la base de datos tiene el registro esperado
+    $this->assertDatabaseCount('lock_downs', 1);
+    $this->assertDatabaseHas('lock_downs', [
+        'status' => LockDownStatus::ACTIVE,
+        'reason' => 'Dino escaped... NOT good...',
+    ]);
 
-        // Envia un correo electrónico
-        $mail = new LockDownLiftedNotification();
+    Mail::fake();
 
-        Mail::send($mail);
-        Mail::assertSent(LockDownLiftedNotification::class);
-    }
-}
+    // Envia un correo electrónico
+    $mail = new LockDownLiftedNotification();
+
+    Mail::send($mail);
+    Mail::assertSent(LockDownLiftedNotification::class);
+});

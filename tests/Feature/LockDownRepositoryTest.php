@@ -1,48 +1,39 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Enums\LockDownStatus;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\LockDown;
 use Carbon\Carbon;
 use Illuminate\Cache\Lock;
 
-class LockDownRepositoryTest extends TestCase
-{
-    use RefreshDatabase;
 
-    public function testIsInLockDownReturnsFalseWithNoRows()
-    {
-        $this->assertFalse(LockDown::isInLockDown());
-    }
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-    public function testIsInLockDownReturnsTrueIfMostRecentLockDownIsActive()
-    {
-        LockDown::create([
-            'created_at' => Carbon::now()->subDay(),
-            'status' => LockDownStatus::ACTIVE,
-        ]);
-        LockDown::factory()->count(5)->create([
-            'created_at' => Carbon::now()->subDays(2),
-            'status' => LockDownStatus::ENDED,
-        ]);
+test('is in lock down returns false with no rows', function () {
+    expect(LockDown::isInLockDown())->toBeFalse();
+});
 
-        $this->assertTrue(LockDown::isInLockDown());
-    }
+test('is in lock down returns true if most recent lock down is active', function () {
+    LockDown::create([
+        'created_at' => Carbon::now()->subDay(),
+        'status' => LockDownStatus::ACTIVE,
+    ]);
+    LockDown::factory()->count(5)->create([
+        'created_at' => Carbon::now()->subDays(2),
+        'status' => LockDownStatus::ENDED,
+    ]);
 
-    public function testIsInLockDownReturnsFalseIfMostRecentIsNotActive()
-    {
-        LockDown::create([
-            'created_at' => Carbon::now()->subDay(),
-            'status' => 'ENDED',
-        ]);
-        LockDown::factory()->count(5)->create([
-            'created_at' => Carbon::now()->subDays(2),
-            'status' => 'ACTIVE',
-        ]);
+    expect(LockDown::isInLockDown())->toBeTrue();
+});
 
-        $this->assertFalse(LockDown::isInLockDown());
-    }
-}
+test('is in lock down returns false if most recent is not active', function () {
+    LockDown::create([
+        'created_at' => Carbon::now()->subDay(),
+        'status' => 'ENDED',
+    ]);
+    LockDown::factory()->count(5)->create([
+        'created_at' => Carbon::now()->subDays(2),
+        'status' => 'ACTIVE',
+    ]);
+
+    expect(LockDown::isInLockDown())->toBeFalse();
+});
